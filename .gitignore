@@ -1,0 +1,6 @@
+.env
+/*.db
+/*.yaml
+/*.pid
+_build/
+.idea/

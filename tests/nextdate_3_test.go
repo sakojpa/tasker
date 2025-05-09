@@ -39,8 +39,10 @@ func TestNextDate(t *testing.T) {
 	}
 	check := func() {
 		for _, v := range tbl {
-			urlPath := fmt.Sprintf("api/nextdate?now=20240126&date=%s&repeat=%s",
-				url.QueryEscape(v.date), url.QueryEscape(v.repeat))
+			urlPath := fmt.Sprintf(
+				"api/nextdate?now=20240126&date=%s&repeat=%s",
+				url.QueryEscape(v.date), url.QueryEscape(v.repeat),
+			)
 			get, err := getBody(urlPath)
 			assert.NoError(t, err)
 			next := strings.TrimSpace(string(get))
@@ -48,8 +50,10 @@ func TestNextDate(t *testing.T) {
 			if err != nil && len(v.want) == 0 {
 				continue
 			}
-			assert.Equal(t, v.want, next, `{%q, %q, %q}`,
-				v.date, v.repeat, v.want)
+			assert.Equal(
+				t, v.want, next, `{%q, %q, %q}`,
+				v.date, v.repeat, v.want,
+			)
 		}
 	}
 	check()
