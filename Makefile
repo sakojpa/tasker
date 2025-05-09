@@ -20,6 +20,7 @@ RUN_PASSWORD	?= 123
 TEST_FULL		?= false
 TEST_SEARCH		?= false
 
+.SILENT:
 .PHONY: build docker run run-with-auth run-n-test test-with-auth
 
 ifeq ($(strip $(DOCKER_RUN_OPTS)),)

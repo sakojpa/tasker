@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/sakojpa/tasker/config"
@@ -36,15 +37,17 @@ func newRouter(c *config.Config) http.Handler {
 		middleware.URLFormat,
 	)
 	r.Get("/api/nextdate", api.RepeatTaskHandler)
-	r.Get("/api/tasks", authConnect(api.GetAllTasksHandler))
-	r.Handle("/api/task", authConnect(api.TaskRouterHandler))
-	r.Post("/api/task/done", authConnect(api.DoneTaskHandler))
+	r.Get("/api/tasks", authConnect(api.GetAllTasksHandler, c))
+	r.Handle("/api/task", authConnect(api.TaskRouterHandler, c))
+	r.Post("/api/task/done", authConnect(api.DoneTaskHandler, c))
 	r.Post("/api/signin", api.AuthHandler)
 	r.Handle("/*", http.FileServer(http.Dir(c.Server.StaticDir)))
 	return r
 }
 
-func authConnect(handler http.HandlerFunc) http.HandlerFunc {
+func authConnect(
+	handler func(w http.ResponseWriter, r *http.Request, ctx context.Context), c *config.Config,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pass := os.Getenv("TODO_PASSWORD")
 		if len(pass) > 0 {
@@ -59,6 +62,8 @@ func authConnect(handler http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 		}
-		handler(w, r)
+		ctx, cancel := context.WithTimeout(context.Background(), c.DB.Timeout)
+		defer cancel()
+		handler(w, r, ctx)
 	}
 }

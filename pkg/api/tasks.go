@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	db "github.com/sakojpa/tasker/pkg/database"
@@ -13,13 +14,13 @@ import (
 )
 
 // AddTask adds a new task to the database and returns its ID.
-func AddTask(w http.ResponseWriter, r *http.Request) {
+func AddTask(w http.ResponseWriter, r *http.Request, ctx context.Context) {
 	task, err := checkBody(r)
 	if err != nil {
 		utils.SentErrorJson(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	id, err := db.CreateTask(task)
+	id, err := db.CreateTask(ctx, task)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusBadRequest)
 		return
@@ -32,11 +33,11 @@ func AddTask(w http.ResponseWriter, r *http.Request) {
 }
 
 // EditTask handles retrieving or updating a specific task by its ID.
-func EditTask(w http.ResponseWriter, r *http.Request) {
+func EditTask(w http.ResponseWriter, r *http.Request, ctx context.Context) {
 	switch r.Method {
 	case "GET":
 		id := r.FormValue("id")
-		task, err := db.GetTaskById(id)
+		task, err := db.GetTaskById(ctx, id)
 		if err != nil {
 			utils.SentErrorJson(w, err.Error(), http.StatusBadRequest)
 			return
@@ -58,7 +59,7 @@ func EditTask(w http.ResponseWriter, r *http.Request) {
 			utils.SentErrorJson(w, "Task ID error", http.StatusBadRequest)
 			return
 		}
-		err = db.UpdateTask(task, task.ID)
+		err = db.UpdateTask(ctx, task, task.ID)
 		if err != nil {
 			utils.SentErrorJson(w, err.Error(), http.StatusBadRequest)
 			return
@@ -69,9 +70,9 @@ func EditTask(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteTask removes a task by its ID from the database.
-func DeleteTask(w http.ResponseWriter, r *http.Request) {
+func DeleteTask(w http.ResponseWriter, r *http.Request, ctx context.Context) {
 	id := r.FormValue("id")
-	err := db.DeleteTaskById(id)
+	err := db.DeleteTaskById(ctx, id)
 	if err != nil {
 		utils.SentErrorJson(w, err.Error(), http.StatusBadRequest)
 		return

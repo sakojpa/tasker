@@ -7,7 +7,8 @@ server:
     server_timeout_idle: 1m0s
     static_dir: web
 db:
+    timeout: 10s
     database_filename: scheduler.db
 auth:
     enabled: false
-    password: 123
+    password: "123"

@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	db "github.com/sakojpa/tasker/pkg/database"
@@ -11,20 +12,20 @@ import (
 )
 
 // TaskRouterHandler routes HTTP requests to appropriate task handlers based on request method.
-func TaskRouterHandler(w http.ResponseWriter, r *http.Request) {
+func TaskRouterHandler(w http.ResponseWriter, r *http.Request, ctx context.Context) {
 	if r.Method == "POST" {
-		AddTask(w, r)
+		AddTask(w, r, ctx)
 	}
 	if r.Method == "GET" || r.Method == "PUT" {
-		EditTask(w, r)
+		EditTask(w, r, ctx)
 	}
 	if r.Method == "DELETE" {
-		DeleteTask(w, r)
+		DeleteTask(w, r, ctx)
 	}
 }
 
 // GetAllTasksHandler retrieves all tasks filtered by search query or date.
-func GetAllTasksHandler(w http.ResponseWriter, r *http.Request) {
+func GetAllTasksHandler(w http.ResponseWriter, r *http.Request, ctx context.Context) {
 	query := r.FormValue("search")
 	queryType := ""
 	if len(query) > 0 {
@@ -36,7 +37,7 @@ func GetAllTasksHandler(w http.ResponseWriter, r *http.Request) {
 			query = t.Format(dateFormat)
 		}
 	}
-	tasks, err := db.GetAllTasks(50, query, queryType)
+	tasks, err := db.GetAllTasks(ctx, 50, query, queryType)
 	if err != nil {
 		utils.SentErrorJson(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -62,15 +63,15 @@ func RepeatTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // DoneTaskHandler marks a task as done, deletes it if non-repeating, otherwise updates its next due date.
-func DoneTaskHandler(w http.ResponseWriter, r *http.Request) {
+func DoneTaskHandler(w http.ResponseWriter, r *http.Request, ctx context.Context) {
 	id := r.FormValue("id")
-	task, err := db.GetTaskById(id)
+	task, err := db.GetTaskById(ctx, id)
 	if err != nil {
 		utils.SentErrorJson(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if len(task.Repeat) == 0 {
-		err = db.DeleteTaskById(id)
+		err = db.DeleteTaskById(ctx, id)
 		if err != nil {
 			utils.SentErrorJson(w, err.Error(), http.StatusBadRequest)
 			return
@@ -85,7 +86,7 @@ func DoneTaskHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		task.Date = taskInfo.NextDate
-		err = db.UpdateTask(task, id)
+		err = db.UpdateTask(ctx, task, id)
 		if err != nil {
 			utils.SentErrorJson(w, err.Error(), http.StatusBadRequest)
 			return

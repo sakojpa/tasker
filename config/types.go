@@ -24,7 +24,8 @@ type Server struct {
 
 // DB stores the database file path configuration.
 type DB struct {
-	FilePath string `yaml:"database_filename" json:"database_filename"`
+	Timeout  time.Duration `yaml:"timeout" json:"timeout"`
+	FilePath string        `yaml:"database_filename" json:"database_filename"`
 }
 
 // Auth contains authentication settings like enablement and password.

@@ -1,15 +1,17 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"sort"
 )
 
 // GetTaskById retrieves a task by its ID from the database.
-func GetTaskById(id string) (*Task, error) {
+func GetTaskById(ctx context.Context, id string) (*Task, error) {
 	task := &Task{}
-	err := dbConn.QueryRow(
+	err := dbConn.QueryRowContext(
+		ctx,
 		"SELECT id, date, title, comment, repeat FROM scheduler WHERE id = ?", id,
 	).Scan(
 		&task.ID,
@@ -26,19 +28,19 @@ func GetTaskById(id string) (*Task, error) {
 }
 
 // GetAllTasks retrieves all tasks, optionally filtering by text or date, sorted by date.
-func GetAllTasks(limit int, searchQuery, searchType string) ([]*Task, error) {
+func GetAllTasks(ctx context.Context, limit int, searchQuery, searchType string) ([]*Task, error) {
 	var rows *sql.Rows
 	var err error
 	switch searchType {
 	case "text":
 		queryDb := "SELECT id, date, title, comment, repeat FROM scheduler WHERE title LIKE ? ORDER BY date ASC LIMIT ?"
-		rows, err = dbConn.Query(queryDb, "%"+searchQuery+"%", limit)
+		rows, err = dbConn.QueryContext(ctx, queryDb, "%"+searchQuery+"%", limit)
 	case "date":
 		queryDb := "SELECT id, date, title, comment, repeat FROM scheduler WHERE date = ? ORDER BY date ASC LIMIT ?"
-		rows, err = dbConn.Query(queryDb, searchQuery, limit)
+		rows, err = dbConn.QueryContext(ctx, queryDb, searchQuery, limit)
 	default:
 		queryDb := "SELECT id, date, title, comment, repeat FROM scheduler ORDER BY date ASC LIMIT ?"
-		rows, err = dbConn.Query(queryDb, limit)
+		rows, err = dbConn.QueryContext(ctx, queryDb, limit)
 	}
 	defer rows.Close()
 	if err != nil {
@@ -63,10 +65,10 @@ func GetAllTasks(limit int, searchQuery, searchType string) ([]*Task, error) {
 }
 
 // CreateTask inserts a new task into the database and returns its ID.
-func CreateTask(task *Task) (int64, error) {
+func CreateTask(ctx context.Context, task *Task) (int64, error) {
 	var id int64
 	query := `INSERT INTO scheduler (date, title, comment, repeat) VALUES (?, ?, ?, ?)`
-	res, err := dbConn.Exec(query, task.Date, task.Title, task.Comment, task.Repeat)
+	res, err := dbConn.ExecContext(ctx, query, task.Date, task.Title, task.Comment, task.Repeat)
 	if err == nil {
 		id, err = res.LastInsertId()
 	}
@@ -74,7 +76,7 @@ func CreateTask(task *Task) (int64, error) {
 }
 
 // UpdateTask modifies an existing task's data in the database by its ID.
-func UpdateTask(task *Task, id string) error {
+func UpdateTask(ctx context.Context, task *Task, id string) error {
 	query := `
 		UPDATE scheduler SET 
                      date = ?, 
@@ -84,7 +86,7 @@ func UpdateTask(task *Task, id string) error {
                  WHERE 
                      id = ?
 `
-	res, err := dbConn.Exec(query, task.Date, task.Title, task.Comment, task.Repeat, id)
+	res, err := dbConn.ExecContext(ctx, query, task.Date, task.Title, task.Comment, task.Repeat, id)
 	count, err := res.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("database error: %w", err)
@@ -96,9 +98,9 @@ func UpdateTask(task *Task, id string) error {
 }
 
 // DeleteTaskById removes a task from the database by its ID.
-func DeleteTaskById(id string) error {
+func DeleteTaskById(ctx context.Context, id string) error {
 	query := "DELETE FROM scheduler WHERE id = ?"
-	res, err := dbConn.Exec(query, id)
+	res, err := dbConn.ExecContext(ctx, query, id)
 	count, err := res.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("database error: %w", err)

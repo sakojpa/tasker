@@ -22,6 +22,7 @@ const (
 	DefaultDatabaseFilePath = "scheduler.db"
 	DefaultAuthEnabled      = false
 	DefailtAuthPassword     = "123"
+	DefaultDBTimeout        = 10 * time.Second
 )
 
 var (
@@ -40,6 +41,7 @@ func newConfig() *Config {
 			StaticDir:    DefaultServerStaticDir,
 		},
 		DB: DB{
+			Timeout:  DefaultDBTimeout,
 			FilePath: DefaultDatabaseFilePath,
 		},
 		Auth: Auth{
