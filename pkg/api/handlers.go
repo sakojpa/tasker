@@ -84,28 +84,31 @@ func DoneTaskHandler(w http.ResponseWriter, r *http.Request, ctx context.Context
 
 // AuthHandler authenticates users by processing JSON-based login credentials.
 func AuthHandler(w http.ResponseWriter, r *http.Request, c *config.Config) {
-	auth := Auth{}
-	var authRequest AuthRequest
-	var buf bytes.Buffer
+	if c.Auth.Enabled && c.Auth.Password != "" {
+		auth := Auth{}
+		var authRequest AuthRequest
+		var buf bytes.Buffer
 
-	_, err := buf.ReadFrom(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		fmt.Printf("body read error: %s\n", err.Error())
-		sentErrorJson(w, "something went wrong", http.StatusInternalServerError)
+		_, err := buf.ReadFrom(r.Body)
+		defer r.Body.Close()
+		if err != nil {
+			fmt.Printf("body read error: %s\n", err.Error())
+			sentErrorJson(w, "something went wrong", http.StatusInternalServerError)
+			return
+		}
+		err = json.Unmarshal(buf.Bytes(), &authRequest)
+		if err != nil {
+			fmt.Printf("unmarshal error: %s\n", err.Error())
+			sentErrorJson(w, "something went wrong", http.StatusInternalServerError)
+			return
+		}
+
+		resp, err, code := auth.make(&authRequest, c)
+		if err != nil {
+			sentErrorJson(w, err.Error(), code)
+			return
+		}
+		sentOkMsg(w, resp, 1)
 		return
 	}
-	err = json.Unmarshal(buf.Bytes(), &authRequest)
-	if err != nil {
-		fmt.Printf("unmarshal error: %s\n", err.Error())
-		sentErrorJson(w, "something went wrong", http.StatusInternalServerError)
-		return
-	}
-	resp, err, code := auth.make(&authRequest, c)
-	if err != nil {
-		sentErrorJson(w, err.Error(), code)
-		return
-	}
-	sentOkMsg(w, resp, 1)
-	return
 }

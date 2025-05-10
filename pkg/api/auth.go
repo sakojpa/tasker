@@ -77,21 +77,24 @@ func AuthConnect(
 	handler func(w http.ResponseWriter, r *http.Request, ctx context.Context), c *config.Config,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		pass := c.Auth.Password
-		if len(pass) > 0 {
-			var jwt string
-			cookie, err := r.Cookie("token")
-			if err == nil {
-				jwt = cookie.Value
-			}
-			_, err = tokenValidate(jwt)
-			if err != nil {
-				sentErrorJson(w, err.Error(), http.StatusUnauthorized)
-				return
+		if c.Auth.Enabled && c.Auth.Password != "" {
+			pass := c.Auth.Password
+			if len(pass) > 0 {
+				var jwt string
+				cookie, err := r.Cookie("token")
+				if err == nil {
+					jwt = cookie.Value
+				}
+				_, err = tokenValidate(jwt)
+				if err != nil {
+					sentErrorJson(w, err.Error(), http.StatusUnauthorized)
+					return
+				}
 			}
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), c.DB.Timeout)
 		defer cancel()
 		handler(w, r, ctx)
 	}
+
 }
