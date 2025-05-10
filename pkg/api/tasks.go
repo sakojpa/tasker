@@ -12,48 +12,9 @@ import (
 	"time"
 )
 
-type AddTask struct{}
+type Task struct{}
 
-func (a AddTask) checkBody(r *http.Request) (*db.Task, error, int) {
-	var task db.Task
-	var buf bytes.Buffer
-	_, err := buf.ReadFrom(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		return nil, fmt.Errorf("body read error"), http.StatusInternalServerError
-	}
-	err = json.Unmarshal(buf.Bytes(), &task)
-	if err != nil {
-		return nil, fmt.Errorf("marshaller error"), http.StatusInternalServerError
-	}
-	if strings.TrimSpace(task.Title) == "" {
-		return nil, fmt.Errorf("task title absent"), http.StatusBadRequest
-	}
-	now := time.Now()
-	if task.Date == "" || strings.TrimSpace(task.Date) == "" {
-		task.Date = now.Format(dateFormat)
-	}
-	parsedTime, err := time.Parse(dateFormat, task.Date)
-	if err != nil {
-		return nil, fmt.Errorf("wrong date format, expected format is %s", dateFormat), http.StatusBadRequest
-	}
-	if afterNow(now, parsedTime) {
-		if len(task.Repeat) == 0 {
-			task.Date = now.Format(dateFormat)
-		} else {
-			next, err := validateRepeatRule(now, task.Date, task.Repeat)
-			if err != nil {
-				return nil, fmt.Errorf("repeat rule error: %w", err), http.StatusBadRequest
-			}
-			task.Date = next.NextDate
-		}
-	}
-	return &task, nil, 0
-}
-
-type UpdateTask struct{}
-
-func (u UpdateTask) checkBody(r *http.Request) (*db.Task, error, int) {
+func (a Task) checkBody(r *http.Request) (*db.Task, error, int) {
 	var task db.Task
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
@@ -92,7 +53,7 @@ func (u UpdateTask) checkBody(r *http.Request) (*db.Task, error, int) {
 
 // AddTaskHandler adds a new task to the database and returns its ID.
 func AddTaskHandler(w http.ResponseWriter, r *http.Request, ctx context.Context) {
-	addTask := AddTask{}
+	addTask := Task{}
 	task, err, code := addTask.checkBody(r)
 	if err != nil {
 		sentErrorJson(w, err.Error(), code)
@@ -112,7 +73,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, ctx context.Context)
 
 // UpdateTaskHandler handles updating a specific task by its ID.
 func UpdateTaskHandler(w http.ResponseWriter, r *http.Request, ctx context.Context) {
-	updateTask := UpdateTask{}
+	updateTask := Task{}
 	task, err, code := updateTask.checkBody(r)
 	if err != nil {
 		sentErrorJson(w, err.Error(), code)
