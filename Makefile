@@ -68,5 +68,5 @@ run-n-test-with-auth:
 	$(GO) run main.go  > /dev/null 2>&1 & echo $$! > $(PID_FILE)
 	sleep 1
 	TODO_TOKEN=$$(curl -s 'http://localhost:7540/api/signin' -H 'Content-Type: application/json' -d '{"password":"123"}' | jq -r '.token') \
-	TODO_FULLNEXTDATE=true TODO_SEARCH=true $(GO) test -v ./tests -count=1
+	TODO_FULLNEXTDATE=$(TEST_FULL) TODO_SEARCH=$(TEST_SEARCH) $(GO) test -v ./tests -count=1
 	pkill -KILL -P $$(cat $(PID_FILE))

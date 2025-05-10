@@ -10,5 +10,5 @@ db:
     timeout: 10s
     database_filename: scheduler.db
 auth:
-    enabled: true
-    password: ""
+    enabled: false
+    password: "123"
