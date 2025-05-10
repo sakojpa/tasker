@@ -10,14 +10,14 @@ import (
 var dbConn *sql.DB
 
 const (
-	SCHEMA string = `create table scheduler (
-  id integer not null constraint scheduler_id_pk primary key autoincrement,
-  date CHAR(8) default '' not null,
-  title varchar(64) default '' not null,
-  comment text default '',
-  repeat varchar(128)
+	SCHEMA string = `CREATE TABLE scheduler (
+  id INTEGER NOT NULL CONSTRAINT scheduler_id_pk PRIMARY KEY autoincrement,
+  date CHAR(8) DEFAULT '' NOT NULL,
+  title VARCHAR(64) DEFAULT '' NOT NULL,
+  comment TEXT DEFAULT '',
+  repeat VARCHAR(128)
 );
-create index scheduler_date_index on scheduler (date);
+CREATE INDEX scheduler_date_index ON scheduler (date);
 `
 )
 

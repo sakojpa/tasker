@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"sort"
 )
 
 // GetTaskById retrieves a task by its ID from the database.
@@ -50,17 +49,15 @@ func GetAllTasks(ctx context.Context, limit int, searchQuery, searchType string)
 	tasks := []*Task{}
 	for rows.Next() {
 		task := &Task{}
-		err = rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
-		if err != nil {
-			return nil, fmt.Errorf("read row error: %w", err)
+		if err = rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat); err != nil {
+			return nil, fmt.Errorf("scanning row error: %w", err)
 		}
 		tasks = append(tasks, task)
 	}
-	sort.Slice(
-		tasks, func(i, j int) bool {
-			return tasks[i].Date < tasks[j].Date
-		},
-	)
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("reading row error: %w", err)
+	}
+
 	return tasks, nil
 }
 

@@ -151,7 +151,7 @@ RUN_PORT=8080 RUN_DBFILE=custom_db_file.db make run
 ```
 или с защитой паролем:
 ```shell
-RUN_PORT=8080 RUN_DBFILE=custom_db_file.db RUN_PASSWORD=qazwsx123 make run
+RUN_PORT=8080 RUN_DBFILE=custom_db_file.db RUN_PASSWORD=qazwsx123 make run-with-auth
 ```
 #### Запуск тестов
 Запуск тестов осуществляется тем же способом, что и в пункте выше.  
@@ -196,6 +196,14 @@ make run-docker
 DOCKER_RUN_OPTS="-e TODO_PORT=8080 -p 8080:8080" make run-docker
 ```
 Этот пример приведёт к запуску приложения на порту 8080 и выполнению прокси-мэппинга порта контейнера на локальном хосте.
+Для монтирования своей собственной бд в докер контейнер необходимо в переменной окружения `DOCKER_BUILD_OPTS` указать точку монтирования и изменить `TODO_DBFILE`:
+Пример:
+```shell
+# -v точка монтирования в хостовой ос:точка монтирования в докере
+# -e указываем какой файл теперь надо зачитать как файл базы данных
+# -p указываем порт который необходимо замэпить в систему
+DOCKER_RUN_OPTS="-v ${PWD}/custom_db_file.db:/app/file.db -e TODO_DBFILE=file.db -p 7540:7540" make run-docker```
+```
 
 ### Тестирование
 Процесс тестирования идентичен описанному в первом варианте установки.

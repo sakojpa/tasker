@@ -22,12 +22,7 @@ func Run() error {
 	}
 	err = database.Init(c)
 	if err != nil {
-		log.Fatal(err)
-	}
-	srv := server.NewServer(c)
-	err = srv.ListenAndServe()
-	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer func() {
 		err = database.DbClose()
@@ -35,5 +30,10 @@ func Run() error {
 			log.Fatal(err)
 		}
 	}()
+	srv := server.NewServer(c)
+	err = srv.ListenAndServe()
+	if err != nil {
+		return err
+	}
 	return nil
 }

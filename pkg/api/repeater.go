@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"github.com/sakojpa/tasker/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -39,7 +38,7 @@ func validateRepeatRule(now time.Time, dstart string, repeat string) (taskRepeat
 		taskInfo.Type = Yearly
 		for {
 			date = date.AddDate(1, 0, 0)
-			if utils.AfterNow(date, now) {
+			if afterNow(date, now) {
 				taskInfo.NextDate = date.Format(dateFormat)
 				return taskInfo, nil
 			}
@@ -55,7 +54,7 @@ func validateRepeatRule(now time.Time, dstart string, repeat string) (taskRepeat
 
 		for {
 			date = date.AddDate(0, 0, taskInfo.Repeat.(int))
-			if utils.AfterNow(date, now) {
+			if afterNow(date, now) {
 				taskInfo.NextDate = date.Format(dateFormat)
 				return taskInfo, nil
 			}
@@ -73,7 +72,7 @@ func validateRepeatRule(now time.Time, dstart string, repeat string) (taskRepeat
 		}
 		for {
 			date = date.AddDate(0, 0, 1)
-			if utils.AfterNow(date, now) && strings.Contains(weekdays, strconv.Itoa(int(date.Weekday()))) {
+			if afterNow(date, now) && strings.Contains(weekdays, strconv.Itoa(int(date.Weekday()))) {
 				taskInfo.NextDate = date.Format(dateFormat)
 				return taskInfo, nil
 			}
@@ -120,22 +119,22 @@ func validateRepeatRule(now time.Time, dstart string, repeat string) (taskRepeat
 
 			for {
 				date = date.AddDate(0, 0, 1)
-				if utils.AfterNow(date, now) && monthMap[date.Month()] {
+				if afterNow(date, now) && monthMap[date.Month()] {
 					if dayMap[date.Day()] {
 						taskInfo.NextDate = date.Format(dateFormat)
 						return taskInfo, nil
 					}
 					if ultimateDay {
-						lastDay := utils.GetLastDayOfMonth(date.Month(), date.Year())
-						if utils.CheckDaysEquality(date, lastDay, dateFormat) {
+						lastDay := getLastDayOfMonth(date.Month(), date.Year())
+						if checkDaysEquality(date, lastDay, dateFormat) {
 							taskInfo.NextDate = date.Format(dateFormat)
 							return taskInfo, nil
 						}
 					}
 					if penultimateDay {
-						lastDay := utils.GetLastDayOfMonth(date.Month(), date.Year())
+						lastDay := getLastDayOfMonth(date.Month(), date.Year())
 						beforeLastDay := lastDay.AddDate(0, 0, -1)
-						if utils.CheckDaysEquality(date, beforeLastDay, dateFormat) {
+						if checkDaysEquality(date, beforeLastDay, dateFormat) {
 							taskInfo.NextDate = date.Format(dateFormat)
 							return taskInfo, nil
 						}
