@@ -27,7 +27,7 @@ func openDB(t *testing.T) *sqlx.DB {
 	dbfile := DBFile
 	envFile := os.Getenv("TODO_DBFILE")
 	if len(envFile) > 0 {
-		dbfile = envFile
+		dbfile = "../" + envFile
 	}
 	db, err := sqlx.Connect("sqlite", dbfile)
 	assert.NoError(t, err)
@@ -43,8 +43,10 @@ func TestDB(t *testing.T) {
 
 	today := time.Now().Format(`20060102`)
 
-	res, err := db.Exec(`INSERT INTO scheduler (date, title, comment, repeat) 
-	VALUES (?, 'Todo', 'Комментарий', '')`, today)
+	res, err := db.Exec(
+		`INSERT INTO scheduler (date, title, comment, repeat) 
+	VALUES (?, 'Todo', 'Комментарий', '')`, today,
+	)
 	assert.NoError(t, err)
 
 	id, err := res.LastInsertId()

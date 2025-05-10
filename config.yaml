@@ -1,0 +1,14 @@
+server:
+    server_scheme: http
+    server_address: 0.0.0.0
+    server_port: "7540"
+    server_timeout_read: 1m0s
+    server_timeout_write: 1m0s
+    server_timeout_idle: 1m0s
+    static_dir: web
+db:
+    timeout: 10s
+    database_filename: scheduler.db
+auth:
+    enabled: false
+    password: "123"
