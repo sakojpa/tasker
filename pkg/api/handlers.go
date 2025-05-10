@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/sakojpa/tasker/config"
 	db "github.com/sakojpa/tasker/pkg/database"
 	"net/http"
 	"time"
@@ -82,7 +83,7 @@ func DoneTaskHandler(w http.ResponseWriter, r *http.Request, ctx context.Context
 }
 
 // AuthHandler authenticates users by processing JSON-based login credentials.
-func AuthHandler(w http.ResponseWriter, r *http.Request) {
+func AuthHandler(w http.ResponseWriter, r *http.Request, c *config.Config) {
 	auth := Auth{}
 	var authRequest AuthRequest
 	var buf bytes.Buffer
@@ -100,7 +101,7 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 		sentErrorJson(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
-	resp, err, code := auth.make(&authRequest)
+	resp, err, code := auth.make(&authRequest, c)
 	if err != nil {
 		sentErrorJson(w, err.Error(), code)
 		return

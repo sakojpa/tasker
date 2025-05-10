@@ -20,10 +20,10 @@ type CustomClaims struct {
 type Auth struct{}
 
 // Make authenticates user and issues JWT token if password is correct.
-func (a Auth) make(request *AuthRequest) (*AuthResp, error, int) {
+func (a Auth) make(request *AuthRequest, c *config.Config) (*AuthResp, error, int) {
 	var authResp AuthResp
 	var err error
-	password := os.Getenv("TODO_PASSWORD")
+	password := c.Auth.Password
 	if password != request.Password {
 		return nil, fmt.Errorf("password is incorrect"), http.StatusUnauthorized
 	}
