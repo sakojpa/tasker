@@ -43,11 +43,15 @@ func newRouter(c *config.Config) http.Handler {
 	r.Get("/api/nextdate", api.RepeatTaskHandler)
 	r.Get("/api/tasks", api.AuthConnect(api.GetAllTasksHandler, c))
 	r.Get("/api/task", api.AuthConnect(api.EditTaskHandler, c))
+
 	r.Post("/api/task", api.AuthConnect(api.AddTaskHandler, c))
-	r.Put("/api/task", api.AuthConnect(api.UpdateTaskHandler, c))
-	r.Delete("/api/task", api.AuthConnect(api.DeleteTaskHandler, c))
 	r.Post("/api/task/done", api.AuthConnect(api.DoneTaskHandler, c))
 	r.Post("/api/signin", func(w http.ResponseWriter, r *http.Request) { api.AuthHandler(w, r, c) })
+
+	r.Put("/api/task", api.AuthConnect(api.UpdateTaskHandler, c))
+
+	r.Delete("/api/task", api.AuthConnect(api.DeleteTaskHandler, c))
+
 	r.Handle("/*", http.FileServer(http.Dir(c.Server.StaticDir)))
 	return r
 }

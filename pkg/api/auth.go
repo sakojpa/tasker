@@ -8,7 +8,6 @@ import (
 	"github.com/sakojpa/tasker/config"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -48,7 +47,7 @@ func (a Auth) make(request *AuthRequest, c *config.Config) (*AuthResp, error, in
 }
 
 // tokenValidate verifies JWT token signature, checks expiration, and compares hashed passwords.
-func tokenValidate(jwtToken string) (*jwt.Token, error) {
+func tokenValidate(jwtToken string, pass string) (*jwt.Token, error) {
 	token, err := jwt.ParseWithClaims(
 		jwtToken,
 		&CustomClaims{},
@@ -57,7 +56,7 @@ func tokenValidate(jwtToken string) (*jwt.Token, error) {
 				return nil, fmt.Errorf("unknown signing method: %v", tk.Header["alg"])
 			}
 			claims := tk.Claims.(*CustomClaims)
-			err := bcrypt.CompareHashAndPassword(claims.HashedPassword, []byte(os.Getenv("TODO_PASSWORD")))
+			err := bcrypt.CompareHashAndPassword(claims.HashedPassword, []byte(pass))
 			if err != nil && errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 				return nil, fmt.Errorf("password changes. token is expired")
 			}
@@ -85,7 +84,7 @@ func AuthConnect(
 				if err == nil {
 					jwt = cookie.Value
 				}
-				_, err = tokenValidate(jwt)
+				_, err = tokenValidate(jwt, c.Auth.Password)
 				if err != nil {
 					sentErrorJson(w, err.Error(), http.StatusUnauthorized)
 					return
